@@ -1,0 +1,16 @@
+{
+  "name": "ticket_viewer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Andrew Eller",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "prompt": "^1.2.0",
+    "prompt-sync": "^4.2.0"
+  }
+}
