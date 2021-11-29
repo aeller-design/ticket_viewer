@@ -1,43 +1,7 @@
-const axios = require('axios');
+const rest = require('./rest_services')
+const Startdomain = "https://zccticketmachine.zendesk.com/api/v2/tickets.json?page[size]=25";
 const prompt = require("prompt-sync")({ sigint: true });
 
-const Startdomain = "https://zccticketmachine.zendesk.com/api/v2/tickets.json?page[size]=25";
-
-// Authorization information
-const email = "aeller916@gmail.com";
-const apiToken = "V4kcMLcYowMO22QSVMyxawdttZQAuEvLzGTG0TTj";
-
-// fetches tickets based on domain passed in.  Domains should always specify increments of 25 tickets
-async function fetch25(domain){
-    try {
-       const response = await axios.get(domain, {
-         headers: {
-           'Authorization': 'Basic ' + Buffer.from(email + '/token:' + apiToken).toString('base64')
-         }
-       });
-       return response.data;     
-    }
-    catch (error){
-       console.log(error); 
-       return false;         
-    }
- }
-
-async function getById(id){
-  try {
-    const response = await axios.get("https://zccticketmachine.zendesk.com/api/v2/tickets/" + id.toString(), {
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(email + '/token:' + apiToken).toString('base64')
-      }
-    });
-    return response.data;
-  }
-  catch (error){
-    console.log(error); 
-    return false;         
-  }
-  
-}
 
 // Displays viable user options
 function userOptions(pageNum, hasMore){
@@ -55,7 +19,7 @@ function userOptions(pageNum, hasMore){
 
 // Displays message on startup
 function welcomeMessage() {
-  console.log("\n-= WELCOME TO TICKET MACHINE TICKET VIEWER =-")
+  console.log("\n-=# WELCOME TO TICKET MACHINE TICKET VIEWER #=-")
 }
 
 // input: pageNumber and current list of tickets
@@ -68,12 +32,12 @@ async function getTickets(pageNum, ticketList) {
 
   if(pageNum === 1){
     nextDomain = ticketList.links.next;
-    nextTicketList = await fetch25(nextDomain);
+    nextTicketList = await rest.fetch25(nextDomain);
     return nextTicketList;
   }
   else if(pageNum === -1){
     prevDomain = ticketList.links.prev;
-    prevTicketList = await fetch25(prevDomain);
+    prevTicketList = await rest.fetch25(prevDomain);
     return prevTicketList;
   }
   else if(pageNum === 0){
@@ -87,6 +51,7 @@ async function getTickets(pageNum, ticketList) {
 function displayTicket(ticket){
   console.log("*********************************************************************************");
   console.info("Ticket ID: " + ticket.id);
+  // assignee info would go here...error uploading assignees.
   console.info("Subject: " + ticket.subject);
   console.log("_________________________________________________________________________________");
   console.info("\nDescription: " + ticket.description);
@@ -104,7 +69,7 @@ async function mainMenu(){
 
   welcomeMessage();
 
-  var jsonList = await fetch25(Startdomain);
+  var jsonList = await rest.fetch25(Startdomain);
   
   var selectionPrompt;
   var page = 0;
@@ -128,16 +93,19 @@ async function mainMenu(){
     }
     // search by id
     else if(selectionPrompt === "i") {
-      const idToSearchFor = prompt("Enter Ticket Id to search for ");
-      const ticket = await getById(idToSearchFor);
+      const idToSearchFor = prompt("Enter Ticket Id to search for: ");
+      const ticket = await rest.getById(idToSearchFor);
       if(ticket)
         displayTicket(ticket.ticket);
+      else
+        console.log("\n ERROR - ticket not found");
     }
     // quit
     else if (selectionPrompt === "q"){
       console.log("Goodbye.");
       break;
     }
+    // display all tickets
     else if((selectionPrompt === "a") && (page === 0)) {
       jsonList = await getTickets(0, jsonList);
       displayTickets(jsonList);
