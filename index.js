@@ -23,13 +23,32 @@ async function fetch25(domain){
     }
  }
 
+async function getById(id){
+  try {
+    const response = await axios.get("https://zccticketmachine.zendesk.com/api/v2/tickets/" + id.toString(), {
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(email + '/token:' + apiToken).toString('base64')
+      }
+    });
+    return response.data;
+  }
+  catch (error){
+    console.log(error); 
+    return false;         
+  }
+  
+}
+
 // Displays viable user options
 function userOptions(pageNum, hasMore){
   console.log("\n-------------------------------");
   if(pageNum > 1)
     console.log("p - previous page of tickets");
-  if(hasMore)
+  if(hasMore && (pageNum > 0))
     console.log("n - next page of tickets");
+  if(pageNum == 0)
+    console.log("a - show all tickets")
+  console.log("i - find ticket by ID")
   console.log("q - quit program");
   console.log("-------------------------------");
 }
@@ -58,11 +77,26 @@ async function getTickets(pageNum, ticketList) {
     return prevTicketList;
   }
   else if(pageNum === 0){
-    console.log(ticketList);
     return ticketList;
   }
   else
     console.log("ERROR - pageNum out of bounds")
+}
+
+// formats and displays ticket information of interest
+function displayTicket(ticket){
+  console.log("*********************************************************************************");
+  console.info("Ticket ID: " + ticket.id);
+  console.info("Subject: " + ticket.subject);
+  console.log("_________________________________________________________________________________");
+  console.info("\nDescription: " + ticket.description);
+  console.info("\nTags: " + ticket.tags +"\n");
+}
+
+// iterates through ticket list and displays each ticket
+function displayTickets(ticketList) {
+  for(let i = 0; i < ticketList.tickets.length; i++) 
+    displayTicket(ticketList.tickets[i]);
 }
 
 // Main menu with user input loop
@@ -73,33 +107,47 @@ async function mainMenu(){
   var jsonList = await fetch25(Startdomain);
   
   var selectionPrompt;
-  var page = 1;
+  var page = 0;
   var hasMore = (jsonList.meta.has_more)  
-  
-  getTickets(0, jsonList);
 
   do {
     userOptions(page, hasMore);
     selectionPrompt = prompt("Please enter a selection: ");
     
-    if ((selectionPrompt === "n") && hasMore) {
+    // next page
+    if ((selectionPrompt === "n") && hasMore && (page > 0)) {
       page++;
       jsonList = await getTickets(1, jsonList);
+      displayTickets(jsonList);
     }
+    // previous page
     else if ((selectionPrompt === "p") && (page > 1)) {
-      console.log("previous page");
       page--;
       jsonList = await getTickets(-1, jsonList);
+      displayTickets(jsonList);
     }
+    // search by id
+    else if(selectionPrompt === "i") {
+      const idToSearchFor = prompt("Enter Ticket Id to search for ");
+      const ticket = await getById(idToSearchFor);
+      if(ticket)
+        displayTicket(ticket.ticket);
+    }
+    // quit
     else if (selectionPrompt === "q"){
-      console.log("Quiting Program.  Goodbye.");
+      console.log("Goodbye.");
       break;
+    }
+    else if((selectionPrompt === "a") && (page === 0)) {
+      jsonList = await getTickets(0, jsonList);
+      displayTickets(jsonList);
+      page++;
     }
     else {
       console.log("invalid selection");
     }
-
-    console.log(jsonList);
+    
+    // check to see if there are more tickets to display
     hasMore = (jsonList.meta.has_more);
   }
   while (true);
