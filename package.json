@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "dev": "node index.js --prod"
   },
   "author": "Andrew Eller",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.24.0",
     "jest": "^27.3.1",
+    "mock-stdin": "^1.0.0",
     "prompt": "^1.2.0",
     "prompt-sync": "^4.2.0"
   }

@@ -1,0 +1,13 @@
+Installation instructions
+-------------------------
+1. Clone repository. 
+2. Ensure that NPM is installed on your system and updated to the latest version (6.14.15).
+3. From the main repository directory (ticket_viewer), run the command 'npm install' to install all necessary dependencies.
+
+Execution instructions
+----------------------
+Main program -
+From the main directory (ticket_viewer) use the command 'npm run dev' to start the program.  The program will run in the terminal.
+
+Testing -
+From the main directory (ticket_viewer) use the command 'npm test' to begin the unit tests.

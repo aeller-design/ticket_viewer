@@ -1,7 +1,13 @@
+/* TICKET MACHINE
+ * Author: Andrew Eller
+ * Email: aeller916@gmail.com
+ * description: uses ZenDesk API to request and display tickets from Zendesk account
+ */
+
 const rest = require('./rest_services')
 const Startdomain = "https://zccticketmachine.zendesk.com/api/v2/tickets.json?page[size]=25";
 const prompt = require("prompt-sync")({ sigint: true });
-
+const process = require("process");
 
 // Displays viable user options
 function userOptions(pageNum, hasMore){
@@ -58,6 +64,10 @@ function displayTicket(ticket){
   console.info("\nTags: " + ticket.tags +"\n");
 }
 
+function displayFooter(page) {
+  console.info("page " + page);
+}
+
 // iterates through ticket list and displays each ticket
 function displayTickets(ticketList) {
   for(let i = 0; i < ticketList.tickets.length; i++) 
@@ -68,9 +78,15 @@ function displayTickets(ticketList) {
 async function mainMenu(){
 
   welcomeMessage();
-
-  var jsonList = await rest.fetch25(Startdomain);
-  
+  var jsonList = null;
+  try{
+    jsonList = await rest.fetch25(Startdomain);
+  }
+  catch(error) {
+    console.log(error);
+    console.log("\n LOGS CURRENTLY NOT AVAILABLE")
+    return;
+  }
   var selectionPrompt;
   var page = 0;
   var hasMore = (jsonList.meta.has_more)  
@@ -84,12 +100,14 @@ async function mainMenu(){
       page++;
       jsonList = await getTickets(1, jsonList);
       displayTickets(jsonList);
+      displayFooter(page);
     }
     // previous page
     else if ((selectionPrompt === "p") && (page > 1)) {
       page--;
       jsonList = await getTickets(-1, jsonList);
       displayTickets(jsonList);
+      displayFooter(page);
     }
     // search by id
     else if(selectionPrompt === "i") {
@@ -107,9 +125,11 @@ async function mainMenu(){
     }
     // display all tickets
     else if((selectionPrompt === "a") && (page === 0)) {
+      page++;
       jsonList = await getTickets(0, jsonList);
       displayTickets(jsonList);
-      page++;
+      displayFooter(page);
+      
     }
     else {
       console.log("invalid selection");
@@ -122,4 +142,10 @@ async function mainMenu(){
 }
 
 // starts program
-mainMenu.call();
+if (process.argv.includes("--prod")) {
+  mainMenu.call();
+}
+
+exports.getTickets = getTickets;
+exports.mainMenu = mainMenu;
+exports.userOptions = userOptions;

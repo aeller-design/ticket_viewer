@@ -16,6 +16,7 @@ async function fetch25(domain) {
   }
   catch (error) {
       console.log(error);
+      console.log("\n ***LOG SERVICES CURRENTLY UNAVAILABLE***\n")
       return false;
   }
 }
@@ -30,7 +31,8 @@ async function getById(id){
     return response.data;
   }
   catch (error){
-    console.log(error); 
+    console.log(error);
+    console.log("\n ***LOG SERVICES CURRENTLY UNAVAILABLE***\n") 
     return false;         
   }  
 }
